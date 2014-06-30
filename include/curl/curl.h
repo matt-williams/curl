@@ -509,6 +509,10 @@ typedef enum {
   CURLE_CHUNK_FAILED,            /* 88 - chunk callback reported error */
   CURLE_NO_CONNECTION_AVAILABLE, /* 89 - No connection available, the
                                     session will be queued */
+  CURLE_RESOLV_TIMEDOUT,         /* 90 - DNS resolver did not return
+                                  * a timely response*/
+  CURLE_TCP_TIMEDOUT,             /* 91 - TCP connection not set up
+                                    before the timeout */
   CURL_LAST /* never use! */
 } CURLcode;
 
