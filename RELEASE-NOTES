@@ -1,46 +1,39 @@
-Curl and libcurl 7.31.0
+Curl and libcurl 7.38.0
 
- Public curl releases:         133
- Command line options:         152
- curl_easy_setopt() options:   199
+ Public curl releases:         140
+ Command line options:         162
+ curl_easy_setopt() options:   208
  Public functions in libcurl:  58
- Known libcurl bindings:       42
- Contributors:                 1005
-
-***
-  krb4 support is up for removal. If you care about it at all, speak up
-  on the curl-library list asap!
-***
+ Contributors:                 1155
 
 This release includes the following changes:
 
- o darwinssl: add TLS session resumption
- o darwinssl: add TLS crypto authentication
- o imap/pop3/smtp: Added support for ;auth=<mech> in the URL
- o imap/pop3/smtp: Added support for ;auth=<mech> to CURLOPT_USERPWD
- o usercertinmem.c: add example showing user cert in memory
- o url: Added smtp and pop3 hostnames to the protocol detection list
- o imap/pop3/smtp: Added support for enabling the SASL initial response [8]
- o curl -E: allow to use ':' in certificate nicknames [10]
+ o bits.close: introduce connection close tracking
+ o darwinssl: Add support for --cacert
+ o polarssl: add ALPN support
  o 
 
 This release includes the following bugfixes:
 
- o FTP: access files in root dir correctly [1]
- o configure: try pthread_create without -lpthread [2]
- o FTP: handle a 230 welcome response [3]
- o curl-config: don't output static libs when they are disabled
- o CURL_CHECK_CA_BUNDLE: don't check for paths when cross-compiling [4]
- o Various documentation updates
- o getinfo.c: reset timecond when clearing session-info variables [5]
- o FILE: prevent an artificial timeout event due to stale speed-check data [6]
- o ftp_state_pasv_resp: connect through proxy also when set by env [7]
- o sshserver: disable StrictHostKeyChecking
- o ftpserver: Fixed imap logout confirmation data
- o curl_easy_init: use less mallocs
- o smtp: Fixed unknown percentage complete in progress bar
- o smtp: Fixed sending of double CRLF caused by first in EOB
- o bindlocal: move brace out of #ifdef [9]
+ o build: Fixed incorrect reference to curl_setup.h in Visual Studio files
+ o build: Use $(TargetDir) and $(TargetName) macros for .pdb and .lib output
+ o curl.1: clarify that -u can't specify a user with colon [1]
+ o openssl: Fix uninitialized variable use in NPN callback
+ o curl_easy_reset: reset the URL [2]
+ o curl_version_info.3: returns a pointer to a static struct
+ o url-parser: only use if_nametoindex if detected by configure [3]
+ o select: with winsock, avoid passing unsupported arguments to select() [4]
+ o gnutls: don't use deprecated type names anymore
+ o gnutls: allow building with nghttp2 but without ALPN support
+ o tests: Fix portability issue with the tftpd server
+ o curl_sasl_sspi: Fixed corrupt hostname in DIGEST-MD5 SPN
+ o curl_sasl: extended native DIGEST-MD5 cnonce to be a 32-byte hex string
+ o random: use Curl_rand() for proper random data [5]
+ o Curl_ossl_init: call OPENSSL_config for initing engines [6]
+ o config-win32.h: Updated for VC12 [7]
+ o winbuild: Don't USE_WINSSL when WITH_SSL is being used
+ o getinfo: HTTP CONNECT code not reset between transfers [8]
+ o Curl_rand: Use a fake entropy for debug builds when CURL_ENTROPY set
  o 
 
 This release includes the following known bugs:
@@ -50,22 +43,19 @@ This release includes the following known bugs:
 This release would not have looked like this without help, code, reports and
 advice from friends like these:
 
- David Strauss, Kamil Dudka, Steve Holme, Nick Zitzmann, Sam Deane, Duncan,
- Anders Havn, Dan Fandrich, Paul Howarth, Dave Reisner, Wouter Van Rooy,
- Linus Nielsen Feltzing, Ishan SinghLevett, Alessandro Ghedini,
- Ludovico Cavedon, Zdenek Pavlas, Zekun Ni,  Lars Johannesen
+  Alessandro Ghedini, Brad Spencer, Chris Young, Dan Fandrich, Daniel Stenberg,
+  Dmitry Falko, Fabian Frank, Jonathan Cardoso Machado, Marcel Raad,
+  Nick Zitzmann, Steve Holme, Tatsuhiro Tsujikawa, Vilmos Nebehaj
 
         Thanks! (and sorry if I forgot to mention someone)
 
 References to bug reports and discussions on issues:
 
- [1] = http://curl.haxx.se/mail/lib-2013-04/0142.html
- [2] = http://curl.haxx.se/bug/view.cgi?id=1216
- [3] = http://curl.haxx.se/mail/lib-2013-02/0102.html
- [4] = http://curl.haxx.se/mail/lib-2013-04/0294.html
- [5] = http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=705783
- [6] = https://bugzilla.redhat.com/906031
- [7] = http://curl.haxx.se/bug/view.cgi?id=1218
- [8] = http://curl.haxx.se/mail/lib-2012-03/0114.html
- [9] = http://curl.haxx.se/mail/lib-2013-05/0000.html
- [10] = http://curl.haxx.se/bug/view.cgi?id=1196
+ [1] = http://curl.haxx.se/bug/view.cgi?id=1375
+ [2] = http://curl.haxx.se/mail/lib-2014-05/0235.html
+ [3] = http://curl.haxx.se/mail/lib-2014-05/0260.html
+ [4] = http://curl.haxx.se/mail/lib-2014-05/0278.html
+ [5] = http://curl.haxx.se/mail/lib-2014-06/0001.html
+ [6] = http://curl.haxx.se/mail/lib-2014-06/0003.html
+ [7] = http://curl.haxx.se/bug/view.cgi?id=1378
+ [8] = http://curl.haxx.se/bug/view.cgi?id=1380
