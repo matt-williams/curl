@@ -135,6 +135,12 @@ curl_easy_strerror(CURLcode error)
   case CURLE_OPERATION_TIMEDOUT:
     return "Timeout was reached";
 
+  case CURLE_RESOLV_TIMEDOUT:
+    return "Timeout was reached when trying to resolve a DNS name";
+
+  case CURLE_TCP_TIMEDOUT:
+    return "Timeout was reached when trying to establish a TCP connection";
+
   case CURLE_FTP_PORT_FAILED:
     return "FTP: command PORT failed";
 
