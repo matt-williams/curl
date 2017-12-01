@@ -1300,6 +1300,9 @@ static CURLcode multi_do_more(struct connectdata *conn, int *complete)
   return result;
 }
 
+/*
+ * Check whether a timeout occurred, and handle it if it did
+ */
 static bool multi_handle_timeout(struct Curl_easy *data,
                                  struct curltime *now,
                                  bool *stream_error,
@@ -1311,7 +1314,6 @@ static bool multi_handle_timeout(struct Curl_easy *data,
 
   if(timeout_ms < 0) {
 
-    /* Handle timed out */
     if(data->mstate == CURLM_STATE_WAITRESOLVE)
       failf(data, "Resolving timed out after %ld milliseconds",
             Curl_tvdiff(*now, data->progress.t_startsingle));
@@ -1420,8 +1422,7 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
 
       /* we need to wait for the connect state as only then is the start time
          stored, but we must not check already completed handles */
-      if (multi_handle_timeout(data, &now, &stream_error, &result, FALSE))
-      {
+      if(multi_handle_timeout(data, &now, &stream_error, &result, FALSE)) {
 
         /* Skip the statemachine and go directly to error handling section. */
         goto statemachine_end;
@@ -2080,12 +2081,11 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
       return CURLM_INTERNAL_ERROR;
     }
 
-    if (data->easy_conn &&
-        data->mstate >= CURLM_STATE_CONNECT &&
-        data->mstate <= CURLM_STATE_WAITDO &&
-        rc != CURLM_CALL_MULTI_PERFORM &&
-        multi_ischanged(multi, false))
-    {
+    if(data->easy_conn &&
+       data->mstate >= CURLM_STATE_CONNECT &&
+       data->mstate <= CURLM_STATE_WAITDO &&
+       rc != CURLM_CALL_MULTI_PERFORM &&
+       multi_ischanged(multi, false)) {
       /* We now handle stream timeouts if and only if this will be the last loop
        * iteration */
       multi_handle_timeout(data, &now, &stream_error, &result, TRUE);
