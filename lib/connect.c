@@ -739,15 +739,6 @@ CURLcode Curl_is_connected(struct connectdata *conn,
 
   now = Curl_tvnow();
 
-  /* figure out how long time we have left to connect */
-  allow = Curl_timeleft(data, &now, TRUE);
-
-  if(allow < 0) {
-    /* time-out, bail out, go home */
-    failf(data, "Connection time-out");
-    return CURLE_OPERATION_TIMEDOUT;
-  }
-
   for(i = 0; i<2; i++) {
     const int other = i ^ 1;
     if(conn->tempsock[i] == CURL_SOCKET_BAD)
@@ -838,6 +829,21 @@ CURLcode Curl_is_connected(struct connectdata *conn,
     }
   }
 
+  /*
+   * Now that we've checked whether we are connected, check whether we've
+   * already timed out.
+   *
+   * First figure out how long time we have left to connect */
+
+  allow = Curl_timeleft(data, &now, TRUE);
+
+  if(allow < 0) {
+    /* time-out, bail out, go home */
+    failf(data, "Connection timeout after %ld ms",
+          Curl_tvdiff(now, data->progress.t_startsingle));
+    return CURLE_OPERATION_TIMEDOUT;
+  }
+
   if(result) {
     /* no more addresses to try */
 
@@ -860,8 +866,10 @@ CURLcode Curl_is_connected(struct connectdata *conn,
     else
       hostname = conn->host.name;
 
-    failf(data, "Failed to connect to %s port %ld: %s",
-        hostname, conn->port, Curl_strerror(conn, error));
+    failf(data, "Failed to connect to %s port %ld after %ld ms: %s",
+        hostname, conn->port,
+        Curl_tvdiff(now, data->progress.t_startsingle),
+        Curl_strerror(conn, error));
   }
 
   return result;
