@@ -6241,7 +6241,7 @@ static CURLcode resolve_server(struct Curl_easy *data,
       else if(rc == CURLRESOLV_TIMEDOUT) {
         failf(data, "Failed to resolve host '%s' with timeout after %ld ms",
               connhost->dispname,
-              Curl_tvdiff(now, data->progress.t_startsingle));
+              Curl_tvdiff(Curl_tvnow(), data->progress.t_startsingle));
         result = CURLE_OPERATION_TIMEDOUT;
       }
       else if(!hostaddr) {
