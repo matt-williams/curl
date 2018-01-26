@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2015, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at http://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.haxx.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -25,6 +25,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* somewhat unix-specific */
 #include <sys/time.h>
@@ -42,15 +43,15 @@
 
 #define NUM_HANDLES 1000
 
-void *curl_hnd[NUM_HANDLES];
-int num_transfers;
+static void *curl_hnd[NUM_HANDLES];
+static int num_transfers;
 
 /* a handle to number lookup, highly ineffective when we do many
    transfers... */
 static int hnd2num(CURL *hnd)
 {
   int i;
-  for(i=0; i< num_transfers; i++) {
+  for(i = 0; i< num_transfers; i++) {
     if(curl_hnd[i] == hnd)
       return i;
   }
@@ -64,7 +65,7 @@ void dump(const char *text, int num, unsigned char *ptr, size_t size,
   size_t i;
   size_t c;
 
-  unsigned int width=0x10;
+  unsigned int width = 0x10;
 
   if(nohex)
     /* without the hex output, we can fit more on screen */
@@ -73,30 +74,32 @@ void dump(const char *text, int num, unsigned char *ptr, size_t size,
   fprintf(stderr, "%d %s, %ld bytes (0x%lx)\n",
           num, text, (long)size, (long)size);
 
-  for(i=0; i<size; i+= width) {
+  for(i = 0; i<size; i += width) {
 
     fprintf(stderr, "%4.4lx: ", (long)i);
 
     if(!nohex) {
       /* hex not disabled, show it */
       for(c = 0; c < width; c++)
-        if(i+c < size)
-          fprintf(stderr, "%02x ", ptr[i+c]);
+        if(i + c < size)
+          fprintf(stderr, "%02x ", ptr[i + c]);
         else
           fputs("   ", stderr);
     }
 
-    for(c = 0; (c < width) && (i+c < size); c++) {
+    for(c = 0; (c < width) && (i + c < size); c++) {
       /* check for 0D0A; if found, skip past and start a new line of output */
-      if (nohex && (i+c+1 < size) && ptr[i+c]==0x0D && ptr[i+c+1]==0x0A) {
-        i+=(c+2-width);
+      if(nohex && (i + c + 1 < size) && ptr[i + c] == 0x0D &&
+         ptr[i + c + 1] == 0x0A) {
+        i += (c + 2 - width);
         break;
       }
       fprintf(stderr, "%c",
-              (ptr[i+c]>=0x20) && (ptr[i+c]<0x80)?ptr[i+c]:'.');
+              (ptr[i + c] >= 0x20) && (ptr[i + c]<0x80)?ptr[i + c]:'.');
       /* check again for 0D0A, to avoid an extra \n if it's at width */
-      if (nohex && (i+c+2 < size) && ptr[i+c+1]==0x0D && ptr[i+c+2]==0x0A) {
-        i+=(c+3-width);
+      if(nohex && (i + c + 2 < size) && ptr[i + c + 1] == 0x0D &&
+         ptr[i + c + 2] == 0x0A) {
+        i += (c + 3 - width);
         break;
       }
     }
@@ -113,9 +116,10 @@ int my_trace(CURL *handle, curl_infotype type,
   int num = hnd2num(handle);
   (void)handle; /* prevent compiler warning */
   (void)userp;
-  switch (type) {
+  switch(type) {
   case CURLINFO_TEXT:
     fprintf(stderr, "== %d Info: %s", num, data);
+    /* FALLTHROUGH */
   default: /* in case a new one is introduced to shock us */
     return 0;
 
@@ -148,7 +152,7 @@ static void setup(CURL *hnd, int num)
   FILE *out;
   char filename[128];
 
-  sprintf(filename, "dl-%d", num);
+  snprintf(filename, 128, "dl-%d", num);
 
   out = fopen(filename, "wb");
 
@@ -158,7 +162,7 @@ static void setup(CURL *hnd, int num)
   /* set the same URL */
   curl_easy_setopt(hnd, CURLOPT_URL, "https://localhost:8443/index.html");
 
-  /* send it verbose for max debuggaility */
+  /* please be verbose */
   curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L);
   curl_easy_setopt(hnd, CURLOPT_DEBUGFUNCTION, my_trace);
 
@@ -197,7 +201,7 @@ int main(int argc, char **argv)
   /* init a multi stack */
   multi_handle = curl_multi_init();
 
-  for(i=0; i<num_transfers; i++) {
+  for(i = 0; i<num_transfers; i++) {
     easy[i] = curl_easy_init();
     /* set options */
     setup(easy[i], i);
@@ -243,8 +247,7 @@ int main(int argc, char **argv)
     /* get file descriptors from the transfers */
     mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
 
-    if(mc != CURLM_OK)
-    {
+    if(mc != CURLM_OK) {
       fprintf(stderr, "curl_multi_fdset() failed, code %d.\n", mc);
       break;
     }
@@ -268,7 +271,7 @@ int main(int argc, char **argv)
     else {
       /* Note that on some platforms 'timeout' may be modified by select().
          If you need access to the original value save a copy beforehand. */
-      rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
+      rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
     }
 
     switch(rc) {
@@ -285,7 +288,7 @@ int main(int argc, char **argv)
 
   curl_multi_cleanup(multi_handle);
 
-  for(i=0; i<num_transfers; i++)
+  for(i = 0; i<num_transfers; i++)
     curl_easy_cleanup(easy[i]);
 
   return 0;

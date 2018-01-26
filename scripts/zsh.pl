@@ -38,14 +38,14 @@ sub parse_main_opts {
     my ($cmd, $regex) = @_;
 
     my @list;
-    my @lines = split /\n/, `"$curl" $cmd`;
+    my @lines = call_curl($cmd);
 
     foreach my $line (@lines) {
         my ($short, $long, $arg, $desc) = ($line =~ /^$regex/) or next;
 
         my $option = '';
 
-        $desc =~ s/'/''/g if defined $desc;
+        $desc =~ s/'/'\\''/g if defined $desc;
         $desc =~ s/\[/\\\[/g if defined $desc;
         $desc =~ s/\]/\\\]/g if defined $desc;
 
@@ -54,10 +54,11 @@ sub parse_main_opts {
         $option .= '}' if defined $short;
         $option .= '\'[' . trim($desc) . ']\'' if defined $desc;
 
-        $option .= ":$arg" if defined $arg;
+        $option .= ":'$arg'" if defined $arg;
 
         $option .= ':_files'
-            if defined $arg and ($arg eq 'FILE' || $arg eq 'DIR');
+            if defined $arg and ($arg eq '<file>' || $arg eq '<filename>'
+                || $arg eq '<dir>');
 
         push @list, $option;
     }
@@ -74,4 +75,15 @@ sub parse_main_opts {
     return @list;
 }
 
-sub  trim { my $s = shift; $s =~ s/^\s+|\s+$//g; return $s };
+sub trim { my $s = shift; $s =~ s/^\s+|\s+$//g; return $s };
+
+sub call_curl {
+    my ($cmd) = @_;
+    my $output = `"$curl" $cmd`;
+    if ($? == -1) {
+        die "Could not run curl: $!";
+    } elsif ((my $exit_code = $? >> 8) != 0) {
+        die "curl returned $exit_code with output:\n$output";
+    }
+    return split /\n/, $output;
+}
